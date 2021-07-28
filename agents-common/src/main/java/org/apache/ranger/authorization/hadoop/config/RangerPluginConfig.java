@@ -243,18 +243,25 @@ public class RangerPluginConfig extends RangerConfiguration {
             LOG.info("-----configFileList is Empty " + serviceHome);
             LOG.info("----- xasecure-audit.xml create dir" + serviceHome);
             File file = new File(xasecureAuditPath);
-            if(!file.exists()){
-                file.mkdir();
+            try {
+                // xasecure-audit.xml 文件不存在,则自动生成一个.因为Ranger2.1没有托管CDH,HiveServer每次重启都会把hive/conf/ 目录下的所有文件刷掉,因此启动时会因为找不到xasecure-audit.xml 而报错.
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+            } catch (IOException ex) {
+                LOG.error("创建xasecure-audit.xml 文件异常!", ex);
             }
+
         }else{
             boolean flag = true;
             for (File rangerConfigFile : configFileList) {
                 try {
                     if ((serviceType.toUpperCase().equals("HIVE") || serviceType.toUpperCase().equals("HDFS")) && flag) {
                         File file = new File(rangerConfigFile.getParentFile().getPath() + "/xasecure-audit.xml");
-                        //判断路径下文件是否存在 kaixin_k
+                        // 判断路径下文件是否存在 kaixin_k
+                        // xasecure-audit.xml 文件不存在,则自动生成一个.因为Ranger2.1没有托管CDH,HiveServer每次重启都会把hive/conf/ 目录下的所有文件刷掉,因此启动时会因为找不到xasecure-audit.xml 而报错.
                         if(!file.exists()){
-                            file.mkdir();
+                            file.createNewFile();
                         }
                         FileUtils.copyFileToDirectory(file, destDir);
                         flag = false;
